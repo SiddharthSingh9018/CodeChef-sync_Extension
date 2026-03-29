@@ -385,6 +385,16 @@ function isCodeChefViewSolutionPage() {
         /^\/viewsolution\/\d+/.test(window.location.pathname);
 }
 
+function isLeetCodePage() {
+    return window.location.hostname === "leetcode.com" &&
+        (/^\/problems\/[^/]+\/?$/.test(window.location.pathname) ||
+        /^\/submissions\/detail\/\d+\/?$/.test(window.location.pathname));
+}
+
+function isNeetCodePage() {
+    return window.location.hostname === "neetcode.io";
+}
+
 function getCodeChefProblemTitle() {
     const problemStatement = document.getElementById("problem-statement");
     if (!problemStatement || !problemStatement.children[0]) {
@@ -507,6 +517,15 @@ async function fetchCodeChefSubmissionCode(submissionId) {
 }
 
 function getCodeChefVisibleSourceFromCurrentPage() {
+    const genericVisibleCode = getVisibleCodeFromCurrentPage();
+    if (genericVisibleCode) {
+        return genericVisibleCode;
+    }
+
+    return "";
+}
+
+function getVisibleCodeFromCurrentPage() {
     const candidateSelectors = [
         "pre",
         "code",
@@ -514,11 +533,17 @@ function getCodeChefVisibleSourceFromCurrentPage() {
         ".ace_content",
         ".ace_text-layer",
         ".CodeMirror-code",
+        ".view-lines",
+        ".view-line",
+        "[class*='monaco'] .view-lines",
+        "[class*='monaco'] .view-line",
         "[class*='solution'] pre",
         "[id*='solution'] pre",
         "[class*='editor'] pre",
         "[class*='editor'] code",
         "[data-testid*='solution']",
+        "[class*='code-block']",
+        "[class*='language-']",
     ];
 
     for (const selector of candidateSelectors) {
@@ -542,6 +567,68 @@ function getCodeChefVisibleSourceFromCurrentPage() {
     }
 
     return "";
+}
+
+function getGenericPageTitle() {
+    const titleNode =
+        document.querySelector("h1") ||
+        document.querySelector('[data-cy="question-title"]') ||
+        document.querySelector('[class*="title"]') ||
+        document.querySelector("title");
+
+    const text = titleNode?.textContent?.trim() || document.title || window.location.pathname;
+    return text.replace(/\s*-\s*LeetCode.*$/i, "").trim();
+}
+
+function getGenericProblemCode(platformName) {
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const slug = pathParts[pathParts.length - 1] || platformName.toLowerCase();
+    return slug.replace(/[^A-Za-z0-9_-]/g, "") || platformName.toLowerCase();
+}
+
+function getGenericStatementHtml() {
+    const candidates = [
+        '[data-track-load="description_content"]',
+        '[class*="question-content"]',
+        '[class*="description"]',
+        "article",
+        "main",
+    ];
+
+    for (const selector of candidates) {
+        const node = document.querySelector(selector);
+        const html = node?.innerHTML?.trim();
+        if (html && html.length > 50) {
+            return html;
+        }
+    }
+
+    return `<p>Source page: <a href="${window.location.href}">${window.location.href}</a></p>`;
+}
+
+async function syncVisibleCurrentPage(platformName) {
+    const settings = await getSettings();
+    requireSettings(settings, ["githubToken", "githubOwner", "githubRepo"], platformName);
+
+    const sourceCode = getVisibleCodeFromCurrentPage();
+    if (!sourceCode) {
+        throw new Error(`Could not find visible code on this ${platformName} page.`);
+    }
+
+    const title = getGenericPageTitle();
+    const problemCode = getGenericProblemCode(platformName);
+    const safeTitle = sanitizeFileName(title);
+    const folderName = `${platformName.toLowerCase()}/${problemCode}-${safeTitle}`;
+
+    await uploadSolutionBundle(settings, {
+        platform: platformName,
+        title,
+        commitSuffix: `page-sync ${new Date().toISOString()}`,
+        codePath: `${folderName}/${safeTitle}.txt`,
+        codeContent: sourceCode,
+        readmePath: `${folderName}/README.md`,
+        readmeContent: `<h2><a href="${window.location.href}">${title}</a></h2>${getGenericStatementHtml()}`,
+    });
 }
 
 function getCodeChefViewSolutionTitle() {
@@ -902,6 +989,40 @@ function initCodeChefViewSolution() {
     });
 }
 
+function initGenericVisibleSync(platformName) {
+    const parent =
+        document.querySelector("main") ||
+        document.querySelector("#app") ||
+        document.body;
+
+    ensureStatusUi({
+        parent,
+        buttonText: `Sync this ${platformName} page`,
+        linkText: "Configure GitHub / handles",
+    });
+    updateStatus(`${platformName} page detected. Sync visible code from this page.`, "#0a8a0a");
+
+    const button = document.getElementById("codesync-sync-button");
+    if (!button || button.dataset.bound === "true") {
+        return;
+    }
+
+    button.dataset.bound = "true";
+    button.addEventListener("click", async () => {
+        setButtonState(true);
+        try {
+            updateStatus(`Reading visible code from current ${platformName} page...`, "#2d6cdf");
+            await syncVisibleCurrentPage(platformName);
+            updateStatus(`${platformName} page synced to GitHub.`, "#0a8a0a");
+        } catch (error) {
+            console.error(error);
+            updateStatus(error.message || "Sync failed.", "#c0392b");
+        } finally {
+            setButtonState(false);
+        }
+    });
+}
+
 function waitForCodeChefSubmitButton() {
     const interval = window.setInterval(() => {
         if (!isCodeChefProblemPage()) {
@@ -929,6 +1050,16 @@ function init() {
 
     if (isCodeChefProblemPage()) {
         waitForCodeChefSubmitButton();
+        return;
+    }
+
+    if (isLeetCodePage()) {
+        initGenericVisibleSync("LeetCode");
+        return;
+    }
+
+    if (isNeetCodePage()) {
+        initGenericVisibleSync("NeetCode");
     }
 }
 

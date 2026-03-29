@@ -13,17 +13,20 @@ The long-term goal is to make this a reusable submission-to-GitHub sync extensio
 Current built-in support:
 - CodeChef
 - Codeforces
+- LeetCode page-based visible-code sync
+- NeetCode page-based visible-code sync
 
 Planned/possible future support:
-- LeetCode
-- NeetCode-style workflows
 - other competitive programming or coding-practice sites with stable submission pages
+- deeper site-specific integrations for platforms beyond the current built-in flows
 
 ## Features
 
 - Syncs accepted submissions from supported platforms to GitHub
 - Currently supports Codeforces problem pages
 - Currently supports CodeChef problem pages
+- Supports visible-code sync from LeetCode pages
+- Supports visible-code sync from NeetCode pages
 - Supports a direct fallback sync on CodeChef `viewsolution/<submission-id>` pages
 - Uploads both the source file and a `README.md` for each problem
 - Stores handles and GitHub settings in Chrome extension storage
@@ -83,7 +86,7 @@ Then click `Save settings`.
 
 ## How To Use
 
-The extension is designed as a generic sync tool, but today the implemented site flows are Codeforces and CodeChef.
+The extension is designed as a generic sync tool. Today it has site-specific flows for Codeforces and CodeChef, plus visible-page sync for LeetCode and NeetCode.
 
 ### Codeforces
 
@@ -99,6 +102,18 @@ The extension is designed as a generic sync tool, but today the implemented site
    `https://www.codechef.com/viewsolution/<submission-id>`
 4. Click `Sync this viewsolution page`.
 
+### LeetCode
+
+1. Open a LeetCode problem or submission page where your code is visible.
+2. Click `Sync this LeetCode page`.
+3. The extension reads the visible code from the current page and uploads it to GitHub.
+
+### NeetCode
+
+1. Open a NeetCode page where the code block is visible.
+2. Click `Sync this NeetCode page`.
+3. The extension reads the visible code from the current page and uploads it to GitHub.
+
 ## How To Verify It Worked
 
 1. Open your GitHub repository.
@@ -107,6 +122,8 @@ The extension is designed as a generic sync tool, but today the implemented site
 4. Look for newly created folders under:
    - `codechef/`
    - `codeforces/`
+   - `leetcode/`
+   - `neetcode/`
 
 Each synced problem should contain:
 - a solution source file
@@ -142,3 +159,4 @@ Fix:
 - This repo is the maintained version for current CodeChef and Codeforces flows.
 - The older CodeSync codebase should be treated as outdated for newer CodeChef pages.
 - The project branding is broader than the current implementation because it is intended to grow into a multi-platform submission sync extension over time.
+- LeetCode and NeetCode support currently rely on visible code already being present on the page, rather than a fully site-specific accepted-submission API flow.
