@@ -5,6 +5,30 @@ Contest Sync for GitHub is a Chrome extension for syncing competitive programmin
 Repository:
 `https://github.com/SiddharthSingh9018/leetcode-codechef-codeforces-neetcode-sync`
 
+## Quick Pitch
+
+Save accepted coding submissions straight to GitHub from the page where you solve them.
+
+- Works today with CodeChef and Codeforces
+- Adds visible-page sync for LeetCode and NeetCode
+- Keeps GitHub setup inside extension settings
+- Helps build a clean public coding archive automatically
+
+## Why People Use It
+
+- Keep a consistent GitHub record of solved problems
+- Avoid copy-pasting code into repos manually
+- Maintain one place for interview prep and contest history
+- Use one extension instead of separate scripts or manual workflows
+
+## Quick Start
+
+1. Load the extension in `chrome://extensions/`
+2. Save your GitHub owner, repo, and token in `Extension options`
+3. Open a supported coding site page
+4. Click the sync button or use the site-specific workflow
+5. Refresh your GitHub repo and see the new problem folder
+
 ## Why This Extension Exists
 
 This project started from the older `CodeSync` extension, but that codebase was built around an older CodeChef UI and older source-fetch flow. Modern CodeChef pages often use a different setup, especially around accepted submissions and `viewsolution` pages, so the original extension can fail even when your submission is correct.
@@ -34,6 +58,14 @@ Planned/possible future support:
 - Uploads both the source file and a `README.md` for each problem
 - Stores handles and GitHub settings in Chrome extension storage
 - Shows clearer errors for missing settings, token problems, repository issues, and source-read failures
+
+## Why This Version Instead Of Old CodeSync
+
+- Updated for newer CodeChef behavior and source-page flow
+- Adds configurable settings instead of hardcoded GitHub credentials
+- Supports multiple platforms instead of only the original narrow flow
+- Gives better error messages when sync fails
+- Includes a fallback sync path for CodeChef `viewsolution` pages
 
 ## Files
 
@@ -132,6 +164,20 @@ Each synced problem should contain:
 - a solution source file
 - a `README.md`
 
+## Ideal GitHub Topics
+
+If you want better GitHub discovery, add topics like:
+
+- `chrome-extension`
+- `competitive-programming`
+- `leetcode`
+- `codeforces`
+- `codechef`
+- `neetcode`
+- `github`
+- `automation`
+- `coding-interview`
+
 ## Troubleshooting
 
 ### GitHub rejected the token
@@ -163,3 +209,10 @@ Fix:
 - The older CodeSync codebase should be treated as outdated for newer CodeChef pages.
 - The project branding is broader than the current implementation because it is intended to grow into a multi-platform submission sync extension over time.
 - LeetCode and NeetCode support currently rely on visible code already being present on the page, rather than a fully site-specific accepted-submission API flow.
+
+## Roadmap
+
+- Add stronger first-class LeetCode submission support
+- Improve language and filename detection on generic pages
+- Add better metadata extraction for visible-page sync platforms
+- Add icons, screenshots, and demo GIFs for easier adoption
