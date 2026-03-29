@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Contest Sync for GitHub",
   "version": "3.0.0",
-  "description": "Sync accepted CodeChef and Codeforces submissions to a GitHub repository.",
+  "description": "Sync competitive programming submissions to a GitHub repository.",
   "homepage_url": "https://github.com/SiddharthSingh9018",
   "permissions": [
     "activeTab",
