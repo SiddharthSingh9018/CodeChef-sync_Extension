@@ -3,7 +3,7 @@
   "name": "Contest Sync for GitHub",
   "version": "3.0.0",
   "description": "Sync competitive programming submissions to a GitHub repository.",
-  "homepage_url": "https://github.com/SiddharthSingh9018",
+  "homepage_url": "https://github.com/SiddharthSingh9018/CodeChef-sync_Extension",
   "permissions": [
     "activeTab",
     "storage"

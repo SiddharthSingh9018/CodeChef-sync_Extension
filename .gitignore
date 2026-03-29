@@ -1,0 +1,10 @@
+.DS_Store
+Thumbs.db
+*.zip
+*.log
+*.tmp
+*.bak
+dist/
+build/
+*.crx
+*.pem
