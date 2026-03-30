@@ -671,8 +671,28 @@ async function syncCurrentCodeChefViewSolution() {
         throw new Error("Could not read code from this viewsolution page.");
     }
 
-    const title = getCodeChefViewSolutionTitle();
-    const problemCode = getCodeChefViewSolutionProblemCode();
+    let title = getCodeChefViewSolutionTitle();
+    let problemCode = getCodeChefViewSolutionProblemCode();
+    try {
+        const pendingTitle = sessionStorage.getItem("contestSyncPendingTitle");
+        const pendingProblem = sessionStorage.getItem("contestSyncPendingProblemCode");
+        if (pendingTitle) {
+            title = pendingTitle;
+        }
+        if (pendingProblem) {
+            problemCode = pendingProblem;
+        }
+    } catch (error) {
+        // ignore
+    }
+
+    try {
+        sessionStorage.removeItem("contestSyncPendingSubmissionId");
+        sessionStorage.removeItem("contestSyncPendingProblemCode");
+        sessionStorage.removeItem("contestSyncPendingTitle");
+    } catch (error) {
+        // ignore
+    }
     const safeTitle = sanitizeFileName(title);
     const folderName = `codechef/${problemCode}-${safeTitle}`;
     const extension = ".txt";
@@ -818,7 +838,20 @@ async function syncCodeChefSubmission(details) {
     const safeTitle = sanitizeFileName(title);
     const folderName = `codechef/${problemCode}-${safeTitle}`;
     const extension = FILE_EXTENSIONS[details.programmingLanguage] || ".txt";
-    const sourceCode = await fetchCodeChefSubmissionCode(details.submissionId);
+    let sourceCode = "";
+    try {
+        sourceCode = await fetchCodeChefSubmissionCode(details.submissionId);
+    } catch (error) {
+        try {
+            sessionStorage.setItem("contestSyncPendingSubmissionId", String(details.submissionId));
+            sessionStorage.setItem("contestSyncPendingProblemCode", problemCode);
+            sessionStorage.setItem("contestSyncPendingTitle", title);
+        } catch (storageError) {
+            // ignore
+        }
+        window.location.href = `https://www.codechef.com/viewsolution/${details.submissionId}`;
+        throw new Error("Opening CodeChef viewsolution page for direct sync...");
+    }
 
     await uploadSolutionBundle(settings, {
         platform: "CodeChef",
@@ -987,6 +1020,20 @@ function initCodeChefViewSolution() {
             setButtonState(false);
         }
     });
+
+    try {
+        const pendingId = sessionStorage.getItem("contestSyncPendingSubmissionId");
+        if (pendingId && pendingId === getCodeChefSubmissionIdFromPage()) {
+            setButtonState(true);
+            updateStatus("Auto-syncing from viewsolution page...", "#2d6cdf");
+            syncCurrentCodeChefViewSolution()
+                .then(() => updateStatus("CodeChef submission synced to GitHub.", "#0a8a0a"))
+                .catch((error) => updateStatus(error.message || "Sync failed.", "#c0392b"))
+                .finally(() => setButtonState(false));
+        }
+    } catch (error) {
+        // ignore
+    }
 }
 
 function initGenericVisibleSync(platformName) {
